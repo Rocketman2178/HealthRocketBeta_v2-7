@@ -21,23 +21,34 @@ export function useStripe() {
       setLoading(true);
       setError(null);
       
-      // Call the Supabase RPC function to create a subscription session
-      const { data, error } = await supabase.rpc('create_subscription_session', {
-        p_price_id: priceId,
-        p_trial_days: trialDays,
-        p_promo_code: promoCode
-      });
-
-      if (error) throw error;
-      
-      if (!data?.success) {
-        throw new Error(data?.error || 'Failed to create subscription session');
+      // Get the Supabase session for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("User not authenticated");
       }
-      
-      // Return the session URL
-      return { 
-        sessionUrl: data.session_url,
-        sessionId: data.session_id || 'session_id'
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-subscription`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ priceId, trialDays, promoCode }),
+        }
+      );
+
+      const data = await response.json();
+
+      console.log("Stripe session response:", data);
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error || "Failed to create Stripe session");
+      }
+    
+      return {
+        sessionUrl: data.sessionUrl,
+        sessionId: data.sessionId,
       };
       
     } catch (err) {
