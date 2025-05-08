@@ -4,6 +4,7 @@ import { CosmoProvider } from './contexts/CosmoContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { StripeProvider } from './contexts/StripeContext';
 import AppContent from './components/common/AppContent';
+import { PWAInstallPrompt } from './components/ui/pwa-install-prompt';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <CosmoProvider>
             <ModalProvider>
               <AppContent />
+              <PWAInstallPrompt />
             </ModalProvider>
           </CosmoProvider>
         </StripeProvider>
